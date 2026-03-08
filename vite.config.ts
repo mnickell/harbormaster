@@ -7,6 +7,13 @@ export default defineConfig({
   server: {
     port: 8585,
   },
+  environments: {
+    ssr: {
+      resolve: {
+        noExternal: true,
+      },
+    },
+  },
   plugins: [
     tsConfigPaths({ projects: ['./tsconfig.json'] }),
     tanstackStart({
