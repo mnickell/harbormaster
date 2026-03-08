@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  webhook:
+    image: almir/webhook
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      - /mnt/user/appdata/harbormaster:/etc/webhook
+    command: -hooks /etc/webhook/hooks.json -verbose -hotreload
+
+  harbormaster:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8585:8585"
+    volumes:
+      - /mnt/user/appdata/harbormaster:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/proc:ro
+    pid: "host"
+    environment:
+      - TZ=America/Chicago
+      - AUTH_TOKEN=
+      - WEBHOOK_BASE_URL=https://deploy.rockyandwinnie.com
+      - HOOKS_FILE=/data/hooks.json
+      - APPS_FILE=/data/apps.json
+      - DEPLOY_SCRIPT=/data/deploy.sh
+      - LOG_DIR=/data/logs
+      - PORT=8585

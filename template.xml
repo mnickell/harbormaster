@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Harbormaster</Name>
+  <Repository>harbormaster</Repository>
+  <Registry>https://github.com/mnickell/harbormaster</Registry>
+  <Branch>
+    <Tag>latest</Tag>
+    <TagDescription>Latest stable release</TagDescription>
+  </Branch>
+  <Network>bridge</Network>
+  <Privileged>true</Privileged>
+  <Support>https://github.com/mnickell/harbormaster/issues</Support>
+  <Overview>Webhook deploy manager with dashboard UI. Manages GitHub-triggered deployments, health monitoring, and app lifecycle for your Unraid server.</Overview>
+  <Category>Tools: Productivity:</Category>
+  <Icon>/plugins/dynamix.docker.manager/images/question.png</Icon>
+  <Description>Harbormaster wraps the adnanh/webhook binary to provide a dashboard UI for managing GitHub webhook deployments on Unraid. Register apps, manage secrets, monitor health, view deploy logs, and control your deployment pipeline from a single interface.</Description>
+  <ExtraParams>--pid=host</ExtraParams>
+  <Config Name="Dashboard Port" Target="8585" Default="8585" Mode="tcp" Description="Harbormaster dashboard UI port" Type="Port" Display="always" Required="true">8585</Config>
+  <Config Name="Webhook Port" Target="9000" Default="9000" Mode="tcp" Description="GitHub webhook receiver port" Type="Port" Display="always" Required="true">9000</Config>
+  <Config Name="AppData Path" Target="/data" Default="/mnt/user/appdata/harbormaster" Mode="rw" Description="Config and logs storage" Type="Path" Display="always" Required="true">/mnt/user/appdata/harbormaster</Config>
+  <Config Name="Docker Socket" Target="/var/run/docker.sock" Default="/var/run/docker.sock" Mode="rw" Description="Docker socket for container management" Type="Path" Display="advanced" Required="true">/var/run/docker.sock</Config>
+  <Config Name="Auth Token" Target="AUTH_TOKEN" Default="" Description="Optional dashboard password. Set to secure the UI." Type="Variable" Display="always" Required="false"></Config>
+  <Config Name="Webhook Base URL" Target="WEBHOOK_BASE_URL" Default="https://deploy.example.com" Description="Public URL for the webhook receiver (shown to users when creating apps)" Type="Variable" Display="always" Required="true">https://deploy.example.com</Config>
+  <Config Name="Timezone" Target="TZ" Default="America/Chicago" Description="Timezone for correct log timestamps" Type="Variable" Display="always" Required="false">America/Chicago</Config>
+</Container>
