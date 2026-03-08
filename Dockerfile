@@ -14,7 +14,7 @@ FROM node:20-alpine
 RUN apk add --no-cache util-linux git
 
 WORKDIR /app
-COPY --from=builder /app/.output ./.output
+COPY --from=builder /app/dist ./dist
 
 EXPOSE 8585
-CMD ["node", ".output/server/index.mjs"]
+CMD ["node", "dist/server/index.mjs"]
