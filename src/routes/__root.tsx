@@ -3,6 +3,7 @@ import {
   HeadContent,
   Link,
   Outlet,
+  Scripts,
 } from '@tanstack/react-router'
 import { ToastProvider } from '~/hooks/useToast'
 import globalCss from '~/styles/global.css?url'
@@ -49,6 +50,7 @@ function RootLayout() {
             <Outlet />
           </main>
         </ToastProvider>
+        <Scripts />
       </body>
     </html>
   )

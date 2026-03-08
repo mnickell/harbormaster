@@ -252,8 +252,8 @@ main {
 /* ── App Grid (Home) ── */
 .app-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
 }
 
 .app-card {
@@ -261,7 +261,7 @@ main {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 22px;
+  padding: 18px 20px;
   transition: all 0.2s var(--ease);
   cursor: pointer;
   color: var(--text);

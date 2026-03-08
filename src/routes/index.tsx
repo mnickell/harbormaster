@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useCallback } from 'react'
-import { fetchApps, deployApp, restartApp } from '~/lib/server-fns'
+import { useState } from 'react'
+import { fetchApps } from '~/lib/server-fns'
 import { StatusBadge, ResultBadge } from '~/components/StatusBadge'
 import { useSSE } from '~/hooks/useSSE'
-import { useToast } from '~/hooks/useToast'
 import { timeAgo } from '~/lib/time'
 import type { AppState } from '~/services/state'
 
@@ -14,7 +13,6 @@ export const Route = createFileRoute('/')({
 
 function AppGrid() {
   const initialApps = Route.useLoaderData()
-  const { toast } = useToast()
   const [liveStates, setLiveStates] = useState<Record<string, Partial<AppState>>>({})
 
   useSSE({
@@ -73,30 +71,6 @@ function AppGrid() {
     ...liveStates[app.id],
   }))
 
-  const handleDeploy = useCallback(
-    async (id: string) => {
-      try {
-        await deployApp({ data: id })
-        toast('Deploy triggered')
-      } catch (err) {
-        toast((err as Error).message, 'error')
-      }
-    },
-    [toast],
-  )
-
-  const handleRestart = useCallback(
-    async (id: string) => {
-      try {
-        await restartApp({ data: id })
-        toast('Restart triggered')
-      } catch (err) {
-        toast((err as Error).message, 'error')
-      }
-    },
-    [toast],
-  )
-
   if (mergedApps.length === 0) {
     return (
       <div className="empty-state">
@@ -136,50 +110,11 @@ function AppGrid() {
               </span>
             </div>
             <div className="meta-row">
-              <span>Commit</span>
-              <span>
-                {app.lastCommitSha
-                  ? `${app.lastCommitSha} ${app.lastCommitMessage || ''}`
-                  : '-'}
-              </span>
-            </div>
-            <div className="meta-row">
               <span>Response</span>
               <span>
-                {app.responseTimeMs !== null ? `${app.responseTimeMs}ms` : '-'}
+                {app.responseTimeMs != null ? `${app.responseTimeMs}ms` : '-'}
               </span>
             </div>
-          </div>
-          <div
-            className="app-card-actions"
-            onClick={(e) => e.preventDefault()}
-          >
-            <button
-              className="btn btn-sm"
-              onClick={(e) => {
-                e.preventDefault()
-                handleDeploy(app.id)
-              }}
-            >
-              Redeploy
-            </button>
-            <button
-              className="btn btn-sm"
-              onClick={(e) => {
-                e.preventDefault()
-                handleRestart(app.id)
-              }}
-            >
-              Restart
-            </button>
-            <Link
-              to="/apps/$appId"
-              params={{ appId: app.id }}
-              className="btn btn-sm"
-              onClick={(e) => e.stopPropagation()}
-            >
-              Details
-            </Link>
           </div>
         </Link>
       ))}

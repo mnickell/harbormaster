@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { type FormEvent } from 'react'
 import { fetchApp, updateAppFn, deleteApp } from '~/lib/server-fns'
 import { useToast } from '~/hooks/useToast'
@@ -53,16 +53,13 @@ function EditApp() {
 
   return (
     <>
-      <a
-        href="#"
+      <Link
+        to="/apps/$appId"
+        params={{ appId: app.id }}
         className="back-link"
-        onClick={(e) => {
-          e.preventDefault()
-          navigate({ to: '/apps/$appId', params: { appId: app.id } })
-        }}
       >
         &larr; Back
-      </a>
+      </Link>
       <h2 style={{ marginBottom: '24px' }}>Edit App</h2>
 
       <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>

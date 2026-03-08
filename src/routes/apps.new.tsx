@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef, type FormEvent } from 'react'
 import { createApp, parseComposePortsFn } from '~/lib/server-fns'
 import { SecretModal } from '~/components/SecretModal'
@@ -76,16 +76,9 @@ function AddApp() {
 
   return (
     <>
-      <a
-        href="#"
-        className="back-link"
-        onClick={(e) => {
-          e.preventDefault()
-          navigate({ to: '/' })
-        }}
-      >
+      <Link to="/" className="back-link">
         &larr; All Apps
-      </a>
+      </Link>
       <h2 style={{ marginBottom: '24px' }}>Add App</h2>
 
       <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>
