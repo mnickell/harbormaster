@@ -119,10 +119,10 @@ Open [http://localhost:8585](http://localhost:8585). Vite provides HMR so change
 
 ```bash
 npm run build
-node dist/server/server.js
+node .output/server/index.mjs
 ```
 
-The build outputs a self-contained server to `dist/` via Nitro.
+The build outputs a self-contained server to `.output/` via Nitro.
 
 ## How It Works
 
