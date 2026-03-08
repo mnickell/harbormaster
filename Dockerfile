@@ -17,4 +17,4 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 8585
-CMD ["node", "dist/server/index.mjs"]
+CMD ["node", "dist/server/server.js"]
