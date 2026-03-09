@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { getDeployScript, getWebhookRelayScript, getInternalUrl } from '~/lib/config'
+import { getDeployScript, getWebhookRelayScript, getPort } from '~/lib/config'
 import { loadApps, addApp } from './registry'
 import { loadHooks, migrateHooksToRelay } from './hooksWriter'
 import { hashSecret } from './secrets'
@@ -17,12 +17,9 @@ export async function ensureInitialized(): Promise<void> {
 
   console.log('Harbormaster initializing...')
 
-  // Write deploy.sh if missing
+  // Always write deploy.sh (overwrite to pick up changes)
   const deployScript = getDeployScript()
-  try {
-    await fs.access(deployScript)
-  } catch {
-    console.log('Writing default deploy.sh...')
+  {
     const script = `#!/bin/sh
 
 APP_NAME=$1
@@ -49,12 +46,19 @@ cd \\$APP_DIR
 docker compose build
 docker compose up -d --remove-orphans
 
+# Output commit info for Harbormaster to parse
+COMMIT_INFO=\\$(git log -1 --format="%h|%s|%an" 2>/dev/null || echo "")
+if [ -n "\\$COMMIT_INFO" ]; then
+  echo "HARBORMASTER_COMMIT:\\$COMMIT_INFO"
+fi
+
 echo "\\$APP_NAME deploy complete"
 EOF
 `
     try {
       await fs.mkdir(path.dirname(deployScript), { recursive: true })
       await fs.writeFile(deployScript, script, { mode: 0o755 })
+      console.log('Wrote deploy.sh')
     } catch (err) {
       console.log(
         'Could not write deploy.sh (may not be needed in dev):',
@@ -63,26 +67,25 @@ EOF
     }
   }
 
-  // Write webhook-relay.sh if missing
+  // Always write webhook-relay.sh (runs in webhook container, relays to Harbormaster API)
   const relayScript = getWebhookRelayScript()
-  try {
-    await fs.access(relayScript)
-  } catch {
-    console.log('Writing default webhook-relay.sh...')
-    const internalUrl = getInternalUrl()
+  {
+    const port = getPort()
     const script = `#!/bin/sh
-# This script is called by the webhook binary when a GitHub webhook fires.
-# It relays the deploy request to Harbormaster's API so deploys are tracked.
+# Called by the webhook binary. Relays deploy to Harbormaster's API
+# so deploys are properly tracked. Uses wget (built into Alpine).
+# Reaches Harbormaster via Docker Compose service name.
 
 APP_ID="$1"
 
-curl -s -X POST "${internalUrl}/api/apps/$APP_ID/deploy" \\
-  -H "Content-Type: application/json" \\
-  -d '{}' || echo "Failed to relay deploy to Harbormaster"
+wget -q -O- --post-data='{}' --header='Content-Type: application/json' \\
+  "http://harbormaster:${port}/api/apps/$APP_ID/deploy" 2>&1 \\
+  || echo "Failed to relay deploy to Harbormaster"
 `
     try {
       await fs.mkdir(path.dirname(relayScript), { recursive: true })
       await fs.writeFile(relayScript, script, { mode: 0o755 })
+      console.log('Wrote webhook-relay.sh')
     } catch (err) {
       console.log(
         'Could not write webhook-relay.sh (may not be needed in dev):',

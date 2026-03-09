@@ -7,8 +7,8 @@ services:
     ports:
       - "9000:9000"
     volumes:
-      - /mnt/user/appdata/harbormaster:/etc/webhook
-    command: -hooks /etc/webhook/hooks.json -verbose -hotreload
+      - /mnt/user/appdata/harbormaster:/data
+    command: -hooks /data/hooks.json -verbose -hotreload
 
   harbormaster:
     build: .
@@ -20,6 +20,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /proc:/proc
     pid: "host"
+    privileged: true
     environment:
       - TZ=America/Chicago
       - AUTH_TOKEN=

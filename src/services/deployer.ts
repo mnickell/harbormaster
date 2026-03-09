@@ -1,4 +1,4 @@
-import { spawn, execFileSync } from 'child_process'
+import { spawn } from 'child_process'
 import { getState, updateState } from './state'
 import {
   appendDeployLog,
@@ -114,21 +114,18 @@ async function executeDeploy(
 
     await appendDeployLog(appId, output, result, durationSec)
 
+    // Parse commit info from deploy script output (HARBORMASTER_COMMIT marker)
     let commitInfo: Record<string, string> = {}
-    try {
-      const composeDir = app.composeDir || `/mnt/user/appdata/${appId}`
-      const gitLog = execFileSync(
-        'git',
-        ['-C', composeDir, 'log', '-1', '--format=%h|%s|%an'],
-        { timeout: 5000, encoding: 'utf8' },
-      ).trim()
-      const [sha, message, author] = gitLog.split('|')
+    const commitMatch = output.match(
+      /HARBORMASTER_COMMIT:([^|]*)\|([^|]*)\|(.*)$/m,
+    )
+    if (commitMatch) {
       commitInfo = {
-        lastCommitSha: sha,
-        lastCommitMessage: message,
-        lastCommitAuthor: author,
+        lastCommitSha: commitMatch[1].trim(),
+        lastCommitMessage: commitMatch[2].trim(),
+        lastCommitAuthor: commitMatch[3].trim(),
       }
-    } catch {}
+    }
 
     updateState(appId, {
       deployInProgress: false,
