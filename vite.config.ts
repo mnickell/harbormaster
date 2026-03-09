@@ -18,6 +18,8 @@ export default defineConfig({
       },
     }),
     react(),
-    nitro(),
+    nitro({
+      serverDir: './server',
+    }),
   ],
 })
