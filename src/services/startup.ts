@@ -43,8 +43,9 @@ else
 fi
 
 cd \\$APP_DIR
+docker compose down --remove-orphans 2>/dev/null || true
 docker compose build
-docker compose up -d --remove-orphans
+docker compose up -d
 
 # Output commit info for Harbormaster to parse
 COMMIT_INFO=\\$(git log -1 --format="%h|%s|%an" 2>/dev/null || echo "")
