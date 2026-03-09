@@ -1,11 +1,13 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { getDeployScript } from '~/lib/config'
+import { getDeployScript, getWebhookRelayScript, getInternalUrl } from '~/lib/config'
 import { loadApps, addApp } from './registry'
-import { loadHooks } from './hooksWriter'
+import { loadHooks, migrateHooksToRelay } from './hooksWriter'
 import { hashSecret } from './secrets'
 import { startMonitoring } from './monitor'
 import { startPortScanning } from './portManager'
+import { updateState } from './state'
+import { listDeployHistory } from './logStore'
 
 const key = '__harbormaster_initialized__'
 
@@ -61,6 +63,34 @@ EOF
     }
   }
 
+  // Write webhook-relay.sh if missing
+  const relayScript = getWebhookRelayScript()
+  try {
+    await fs.access(relayScript)
+  } catch {
+    console.log('Writing default webhook-relay.sh...')
+    const internalUrl = getInternalUrl()
+    const script = `#!/bin/sh
+# This script is called by the webhook binary when a GitHub webhook fires.
+# It relays the deploy request to Harbormaster's API so deploys are tracked.
+
+APP_ID="$1"
+
+curl -s -X POST "${internalUrl}/api/apps/$APP_ID/deploy" \\
+  -H "Content-Type: application/json" \\
+  -d '{}' || echo "Failed to relay deploy to Harbormaster"
+`
+    try {
+      await fs.mkdir(path.dirname(relayScript), { recursive: true })
+      await fs.writeFile(relayScript, script, { mode: 0o755 })
+    } catch (err) {
+      console.log(
+        'Could not write webhook-relay.sh (may not be needed in dev):',
+        (err as Error).message,
+      )
+    }
+  }
+
   // Migration: import existing hooks.json entries
   try {
     const apps = await loadApps()
@@ -101,6 +131,30 @@ EOF
   } catch (err) {
     console.log('Migration check skipped:', (err as Error).message)
   }
+
+  // Migrate existing hooks to use webhook-relay.sh
+  try {
+    const migrated = await migrateHooksToRelay()
+    if (migrated > 0) {
+      console.log(`Migrated ${migrated} hooks to use webhook-relay.sh`)
+    }
+  } catch {}
+
+  // Restore deploy state from disk logs
+  try {
+    const apps = await loadApps()
+    for (const app of apps) {
+      const history = await listDeployHistory(app.id)
+      if (history.length > 0) {
+        const latest = history[0]
+        updateState(app.id, {
+          lastDeployAt: latest.timestamp,
+          lastDeployResult: latest.result,
+        })
+        console.log(`  Restored deploy state for ${app.id}: ${latest.result} at ${latest.timestamp}`)
+      }
+    }
+  } catch {}
 
   // Start port scanning
   startPortScanning()

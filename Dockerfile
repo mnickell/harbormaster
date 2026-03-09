@@ -12,7 +12,7 @@ RUN npm run build
 
 FROM node:20-alpine
 
-RUN apk add --no-cache util-linux git
+RUN apk add --no-cache util-linux git curl
 
 WORKDIR /app
 COPY --from=builder /app/.output ./.output

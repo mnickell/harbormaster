@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { getHooksFile, getDeployScript } from '~/lib/config'
+import { getHooksFile, getWebhookRelayScript } from '~/lib/config'
 import type { App } from './registry'
 
 interface HookEntry {
@@ -36,7 +36,7 @@ async function saveHooks(hooks: HookEntry[]): Promise<void> {
 function buildHookEntry(app: App, rawSecret: string): HookEntry {
   return {
     id: `deploy-${app.id}`,
-    'execute-command': getDeployScript(),
+    'execute-command': getWebhookRelayScript(),
     'pass-arguments-to-command': [
       { source: 'string', name: app.id },
       { source: 'string', name: app.repo },
@@ -93,6 +93,24 @@ export async function updateHookRepo(app: App): Promise<void> {
     { source: 'string', name: app.repo },
   ]
   await saveHooks(hooks)
+}
+
+export async function migrateHooksToRelay(): Promise<number> {
+  const hooks = await loadHooks()
+  const relayScript = getWebhookRelayScript()
+  let migrated = 0
+
+  for (const hook of hooks) {
+    if (hook['execute-command'] !== relayScript) {
+      hook['execute-command'] = relayScript
+      migrated++
+    }
+  }
+
+  if (migrated > 0) {
+    await saveHooks(hooks)
+  }
+  return migrated
 }
 
 export async function removeHook(appId: string): Promise<void> {

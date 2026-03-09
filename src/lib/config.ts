@@ -17,6 +17,14 @@ export function getDeployScript(): string {
   return process.env.DEPLOY_SCRIPT || '/data/deploy.sh'
 }
 
+export function getWebhookRelayScript(): string {
+  return process.env.WEBHOOK_RELAY_SCRIPT || '/data/webhook-relay.sh'
+}
+
+export function getInternalUrl(): string {
+  return process.env.INTERNAL_URL || `http://localhost:${getPort()}`
+}
+
 export function getLogDir(): string {
   return process.env.LOG_DIR || '/data/logs'
 }
