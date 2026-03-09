@@ -7,6 +7,7 @@ COPY package*.json ./
 RUN npm ci
 COPY tsconfig.json vite.config.ts ./
 COPY src/ ./src/
+COPY server/ ./server/
 RUN npm run build
 
 FROM node:20-alpine

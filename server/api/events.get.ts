@@ -4,6 +4,7 @@ import { getAllStates } from '../../src/services/state'
 import eventBus from '../../src/services/eventBus'
 
 export default defineEventHandler(async (event) => {
+  console.log('[api/events] SSE request received', event.node.req.url)
   await ensureInitialized()
 
   const states = getAllStates()
